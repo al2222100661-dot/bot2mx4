@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🤖 Bot2MX4 (con Google Gemini — GRATIS)
 
 Bot inteligente para negocios vía Facebook Messenger.
@@ -84,3 +85,7 @@ Para un negocio chico con 100-200 mensajes al día, **nunca llegarás al límite
 ---
 
 **Bot2MX4** — Automatiza tu atención al cliente 🚀
+=======
+# bot2mx4
+bot para negocios 
+>>>>>>> fdbec7ae5fc22e2108b4e961c735ad52468cd369

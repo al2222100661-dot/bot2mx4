@@ -23,12 +23,12 @@ CLIENTS = {
         "address":  "Toluca, Estado de México",
         "hours":    "Lunes a Viernes 9am-6pm",
         "services": [
-            {"nombre": "Bot para Messenger", "precio": "$1,500 MXN instalación + $500/mes", "duracion": "Entrega en 3 días"},
+            {"nombre": "Bot para Messenger", "precio": "$1,500 MXN instalación + $500/mes", "duracion": "Entrega en 5 días"},
             {"nombre": "Casa inteligente",   "precio": "Desde $3,000 MXN",                  "duracion": "Instalación en 1 día"},
         ],
         "faq": {
             "formas de pago": "Transferencia bancaria (SPEI) o efectivo.",
-            "garantía":       "30 días de soporte incluidos.",
+            "garantía":       "20 días de soporte incluidos.",
         }
     },
 
@@ -75,9 +75,9 @@ def get_system_prompt(page_id: str) -> str:
     ])
 
     return f"""
-Eres el asistente virtual de {c['name']}, un {c['type']}.
+Eres el asistente de {c['name']}, un {c['type']}.
 
-Tu nombre es Botzi y eres amigable, cercano y profesional.
+Tu nombre es Luca y eres amigable, cercano y profesional.
 
 HORARIO: {c['hours']}
 TELÉFONO: {c['phone']}
