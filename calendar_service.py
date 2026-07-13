@@ -2,13 +2,24 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from datetime import datetime
 
+import json
+import os
+
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-SERVICE_ACCOUNT_FILE = 'bot2mx4-da1510566782.json'
 
 def get_calendar_service():
-    credentials = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
+    creds_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+    if creds_json:
+        # En Render: lee desde variable de entorno
+        info = json.loads(creds_json)
+        credentials = service_account.Credentials.from_service_account_info(
+            info, scopes=SCOPES
+        )
+    else:
+        # En tu máquina local: lee desde el archivo
+        credentials = service_account.Credentials.from_service_account_file(
+            'bot2mx4-da1510566782.json', scopes=SCOPES
+        )
     service = build('calendar', 'v3', credentials=credentials)
     return service
 
