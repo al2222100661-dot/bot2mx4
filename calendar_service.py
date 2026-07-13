@@ -76,9 +76,15 @@ def resumen_citas(calendar_id, max_resultados=10):
 def horario_disponible(calendar_id, inicio_iso, fin_iso):
     """
     Revisa si ya existe algún evento que se cruce con el horario solicitado.
-    Devuelve True si está libre, False si ya hay algo agendado.
     """
     service = get_calendar_service()
+
+    # Asegura que las fechas tengan zona horaria (Ciudad de México = -06:00)
+    if 'T' in inicio_iso and '+' not in inicio_iso and 'Z' not in inicio_iso:
+        inicio_iso = inicio_iso + '-06:00'
+    if 'T' in fin_iso and '+' not in fin_iso and 'Z' not in fin_iso:
+        fin_iso = fin_iso + '-06:00'
+
     eventos_result = service.events().list(
         calendarId=calendar_id,
         timeMin=inicio_iso,
