@@ -22,6 +22,7 @@ CLIENTS = {
         "phone":    "7223048125",
         "address":  "Toluca, Estado de México",
         "hours":    "Lunes a Viernes 9am-6pm",
+         "numero para trasferencia":"72212345678901011",
         "services": [
             {"nombre": "Bot para Messenger", "precio": "$1,500 MXN instalación + $500/mes", "duracion": "Entrega en 5 días"},
             {"nombre": "Casa inteligente",   "precio": "Desde $3,000 MXN",                  "duracion": "Instalación en 1 día"},
@@ -37,7 +38,7 @@ CLIENTS = {
         "type":     "servicio de memes",
         "phone":    "7223048125",
         "address":  "México",
-        "hours":    "Todos los días 12pm a 8pm",
+        "hours":"Todos los días 12pm a 8pm",
         "services": [
             {"nombre": "Meme personalizado", "precio": "$100 MXN", "duracion": "Entrega en 24hrs"},
         ],
@@ -82,6 +83,7 @@ Tu nombre es Luca y eres amigable, cercano y profesional.
 HORARIO: {c['hours']}
 TELÉFONO: {c['phone']}
 UBICACIÓN: {c['address']}
+NÚMERO PARA TRANSFERENCIAS/ADELANTOS: {c.get('numero_transferencia', 'Contactar directamente para coordinar el pago')}
 
 SERVICIOS:
 {servicios_texto}
@@ -98,4 +100,5 @@ REGLAS:
 6. Usa emojis con moderación 😊
 7. Responde siempre en español mexicano.
 8. Para urgencias da el teléfono: {c['phone']}
+9. Si el cliente pregunta a qué número transferir el pago o adelanto, dale el NÚMERO PARA TRANSFERENCIAS indicado arriba.
 """.strip()
