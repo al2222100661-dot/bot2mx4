@@ -94,3 +94,40 @@ def horario_disponible(calendar_id, inicio_iso, fin_iso):
 
     eventos = eventos_result.get('items', [])
     return len(eventos) == 0
+
+def crear_evento_servicio(calendar_id, tipo_servicio, datos, inicio_iso, fin_iso):
+    """
+    Crea un evento con todos los detalles del servicio, incluyendo
+    la fecha en que se solicitó (fecha de creación del evento).
+    """
+    fecha_solicitud = datetime.now().strftime('%d/%m/%Y %H:%M')
+
+    if tipo_servicio == "bot":
+        resumen = f"🤖 Bot - {datos.get('nombre_negocio', 'Sin nombre')} ({datos.get('nombre_completo', '')})"
+        descripcion = (
+            f"📅 Solicitado el: {fecha_solicitud}\n"
+            f"👤 Cliente: {datos.get('nombre_completo', 'N/D')}\n"
+            f"📞 Teléfono: {datos.get('telefono', 'N/D')}\n"
+            f"🏢 Negocio: {datos.get('nombre_negocio', 'N/D')}\n"
+            f"📋 Giro: {datos.get('giro_negocio', 'N/D')}\n"
+            f"📝 Descripción del bot: {datos.get('descripcion_bot', 'N/D')}\n"
+            f"💰 Adelanto (25%): {'✅ Comprobante recibido' if datos.get('comprobante_recibido') else '⚠️ Pendiente'}"
+        )
+    else:  # casa_inteligente
+        resumen = f"🏠 Casa Inteligente - {datos.get('nombre_completo', 'Sin nombre')}"
+        descripcion = (
+            f"📅 Solicitado el: {fecha_solicitud}\n"
+            f"👤 Cliente: {datos.get('nombre_completo', 'N/D')}\n"
+            f"📞 Teléfono: {datos.get('telefono', 'N/D')}\n"
+            f"📍 Dirección: {datos.get('direccion', 'N/D')}"
+        )
+
+    service = get_calendar_service()
+    evento = {
+        'summary': resumen,
+        'description': descripcion,
+        'start': {'dateTime': inicio_iso, 'timeZone': 'America/Mexico_City'},
+        'end': {'dateTime': fin_iso, 'timeZone': 'America/Mexico_City'},
+    }
+    evento_creado = service.events().insert(calendarId=calendar_id, body=evento).execute()
+    return evento_creado.get('htmlLink')

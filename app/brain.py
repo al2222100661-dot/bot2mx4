@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 from config.business import get_system_prompt
 from agenda_ia import detectar_intencion_agenda
-from calendar_service import crear_evento, horario_disponible
+from calendar_service import crear_evento_servicio, horario_disponible
 from clientes_config import obtener_calendar_id
 
 load_dotenv()
@@ -19,52 +19,59 @@ conversation_history: dict[str, list] = {}
 MAX_HISTORY = 20
 
 
-def intentar_agendar(user_message: str, page_id: str) -> str | None:
-    """
-    Devuelve un mensaje de respuesta si se procesó una solicitud de agenda,
-    o None si el mensaje no tiene que ver con agendar (sigue el flujo normal).
-    """
-    resultado = detectar_intencion_agenda(user_message)
+def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | None:
+    # Construir historial en texto plano para dárselo a la IA
+    historial_texto = ""
+    if sender_id in conversation_history:
+        for msg in conversation_history[sender_id][-10:]:
+            rol = "Usuario" if msg["role"] == "user" else "Bot"
+            historial_texto += f"{rol}: {msg['content']}\n"
 
-    if not resultado.get("agendar"):
-        return None
+    resultado = detectar_intencion_agenda(user_message, historial_texto)
 
-    if not resultado.get("fecha_hora_inicio"):
-        return resultado.get("falta_info") or "¿Para qué fecha y hora te gustaría agendar?"
+    if not resultado.get("tipo_servicio"):
+        return None  # no es una solicitud de servicio, sigue flujo normal
 
+    if not resultado.get("datos_completos"):
+        return resultado.get("falta_info") or "Necesito un dato más para continuar, ¿me lo compartes?"
+
+    # --- Ya están todos los datos, verificar fecha/hora y calendario ---
     calendar_id = obtener_calendar_id(page_id)
     if not calendar_id:
-        return None  # esta página no tiene calendario configurado, sigue flujo normal
+        return None
 
-    inicio = resultado["fecha_hora_inicio"]
+    inicio = resultado.get("fecha_hora_inicio")
     fin = resultado.get("fecha_hora_fin") or inicio
 
-    # --- Verificar disponibilidad ---
+    if not inicio:
+        return "¿Para qué día y hora te gustaría agendar?"
+
     disponible = horario_disponible(calendar_id, inicio, fin)
     if not disponible:
-        return (
-            "Ese horario ya está ocupado 😕. "
-            "¿Tienes otra fecha u hora disponible para tu cita?"
-        )
-
-    # --- Crear el evento ---
-    resumen = f"{resultado.get('tipo_servicio', 'Cita')} - {resultado.get('nombre', 'Cliente')}"
-    descripcion = (
-        f"Teléfono: {resultado.get('telefono', 'No proporcionado')}\n"
-        f"Notas: {resultado.get('notas', '')}"
-    )
+        return "Ese horario ya está ocupado 😕. ¿Tienes otra fecha u hora disponible?"
 
     try:
-        crear_evento(calendar_id, resumen, descripcion, inicio, fin)
-        return f"¡Listo! Tu cita quedó agendada para el {inicio.replace('T', ' a las ')}. 📅✅"
+        tipo_servicio = resultado["tipo_servicio"]
+        link = crear_evento_servicio(calendar_id, tipo_servicio, resultado, inicio, fin)
+
+        if tipo_servicio == "bot":
+            return (
+                f"¡Perfecto {resultado.get('nombre_completo', '')}! Tu solicitud de bot quedó registrada. "
+                f"Para confirmar tu cita, por favor envía la foto del comprobante de tu adelanto del 25%. 📸"
+            )
+        else:
+            return (
+                f"¡Listo {resultado.get('nombre_completo', '')}! Tu cita para casa inteligente quedó agendada "
+                f"el {inicio.replace('T', ' a las ')}. 📅✅"
+            )
     except Exception as e:
         print(f"[ERROR al crear evento] {e}")
-        return "Tuve un problema al agendar tu cita, ¿lo intentamos de nuevo?"
+        return "Tuve un problema al agendar, ¿lo intentamos de nuevo?"
 
 
 def get_response(sender_id: str, user_message: str, page_id: str = "") -> str:
     # --- Intentar agendar primero ---
-    respuesta_agenda = intentar_agendar(user_message, page_id)
+    respuesta_agenda = intentar_agendar(sender_id, user_message, page_id)
     if respuesta_agenda:
         return respuesta_agenda
 
