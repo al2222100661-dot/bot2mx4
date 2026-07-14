@@ -16,11 +16,17 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 conversation_history: dict[str, list] = {}
+esperando_comprobante: dict[str, bool] = {}
 MAX_HISTORY = 20
 
 
 def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | None:
+    # Si ya agendó y está esperando el comprobante, no vuelvas a detectar agenda
+    if esperando_comprobante.get(sender_id):
+        return None  # deja que el flujo normal de conversación responda
+
     historial_texto = ""
+    ...
     if sender_id in conversation_history:
         for msg in conversation_history[sender_id][-10:]:
             rol = "Usuario" if msg["role"] == "user" else "Bot"
@@ -49,10 +55,8 @@ def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | N
         return "Ese horario ya está ocupado 😕. ¿Tienes otra fecha u hora disponible?"
 
     try:
-        tipo_servicio = resultado["tipo_servicio"]
-        crear_evento_servicio(calendar_id, tipo_servicio, resultado, inicio, fin)
-
-        if tipo_servicio == "bot":
+     if tipo_servicio == "bot":
+            esperando_comprobante[sender_id] = True
             return (
                 f"¡Perfecto {resultado.get('nombre_completo', '')}! Tu solicitud de bot quedó registrada. "
                 f"Para confirmar tu cita, por favor envía la foto del comprobante de tu adelanto del 25%. 📸"
