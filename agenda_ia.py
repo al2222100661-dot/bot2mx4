@@ -2,15 +2,19 @@ import os
 import json
 import requests
 from datetime import datetime
+import pytz
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
 def detectar_intencion_agenda(mensaje_usuario: str, historial: str = "") -> dict:
+    zona_mexico = pytz.timezone('America/Mexico_City')
+    ahora_mexico = datetime.now(zona_mexico)
+
     prompt_sistema = f"""Eres un asistente que detecta si un usuario quiere agendar un servicio y extrae los datos necesarios de TODA la conversación (no solo el último mensaje).
 
-Fecha y hora actuales: {datetime.now().isoformat()} (zona horaria: America/Mexico_City)
+Fecha y hora actuales: {ahora_mexico.strftime('%Y-%m-%dT%H:%M:%S')} (zona horaria: America/Mexico_City)
 
 Hay DOS tipos de servicio, cada uno requiere datos distintos:
 
