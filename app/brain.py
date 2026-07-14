@@ -20,7 +20,6 @@ MAX_HISTORY = 20
 
 
 def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | None:
-    # Construir historial en texto plano para dárselo a la IA
     historial_texto = ""
     if sender_id in conversation_history:
         for msg in conversation_history[sender_id][-10:]:
@@ -30,12 +29,11 @@ def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | N
     resultado = detectar_intencion_agenda(user_message, historial_texto)
 
     if not resultado.get("tipo_servicio"):
-        return None  # no es una solicitud de servicio, sigue flujo normal
+        return None
 
     if not resultado.get("datos_completos"):
         return resultado.get("falta_info") or "Necesito un dato más para continuar, ¿me lo compartes?"
 
-    # --- Ya están todos los datos, verificar fecha/hora y calendario ---
     calendar_id = obtener_calendar_id(page_id)
     if not calendar_id:
         return None
@@ -52,7 +50,7 @@ def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | N
 
     try:
         tipo_servicio = resultado["tipo_servicio"]
-        link = crear_evento_servicio(calendar_id, tipo_servicio, resultado, inicio, fin)
+        crear_evento_servicio(calendar_id, tipo_servicio, resultado, inicio, fin)
 
         if tipo_servicio == "bot":
             return (
@@ -70,12 +68,6 @@ def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | N
 
 
 def get_response(sender_id: str, user_message: str, page_id: str = "") -> str:
-    # --- Intentar agendar primero ---
-    respuesta_agenda = intentar_agendar(sender_id, user_message, page_id)
-    if respuesta_agenda:
-        return respuesta_agenda
-
-    # --- Si no es agenda, sigue el flujo conversacional normal ---
     if sender_id not in conversation_history:
         conversation_history[sender_id] = []
 
@@ -83,6 +75,14 @@ def get_response(sender_id: str, user_message: str, page_id: str = "") -> str:
         "role": "user",
         "content": user_message
     })
+
+    respuesta_agenda = intentar_agendar(sender_id, user_message, page_id)
+    if respuesta_agenda:
+        conversation_history[sender_id].append({
+            "role": "assistant",
+            "content": respuesta_agenda
+        })
+        return respuesta_agenda
 
     history = conversation_history[sender_id][-MAX_HISTORY:]
     messages = [{"role": "system", "content": get_system_prompt(page_id)}] + history
