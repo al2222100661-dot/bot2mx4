@@ -1,4 +1,4 @@
-    """
+"""
 BOT2MX4 - Cerebro del bot (Groq API - Multi-cliente)
 """
 
