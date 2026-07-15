@@ -1,4 +1,4 @@
-"""
+    """
 BOT2MX4 - Cerebro del bot (Groq API - Multi-cliente)
 """
 
@@ -50,9 +50,13 @@ def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | N
     if not inicio:
         return "¿Para qué día y hora te gustaría agendar?"
 
-    disponible = horario_disponible(calendar_id, inicio, fin)
-    if not disponible:
-        return "Ese horario ya está ocupado 😕. ¿Tienes otra fecha u hora disponible?"
+    tipo_servicio = resultado["tipo_servicio"]
+
+    # Solo verificar disponibilidad para citas reales (casa inteligente), no para solicitudes de bot
+    if tipo_servicio == "casa_inteligente":
+        disponible = horario_disponible(calendar_id, inicio, fin)
+        if not disponible:
+            return "Ese horario ya está ocupado 😕. ¿Tienes otra fecha u hora disponible?"
 
     try:
      if tipo_servicio == "bot":
