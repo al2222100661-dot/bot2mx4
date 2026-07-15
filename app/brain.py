@@ -89,7 +89,17 @@ def get_response(sender_id: str, user_message: str, page_id: str = "") -> str:
         return respuesta_agenda
 
     history = conversation_history[sender_id][-MAX_HISTORY:]
-    messages = [{"role": "system", "content": get_system_prompt(page_id)}] + history
+   contexto_extra = ""
+    if esperando_comprobante.get(sender_id):
+        contexto_extra = (
+            "\nIMPORTANTE: Este cliente YA agendó su servicio y YA se le pidieron todos sus datos. "
+            "Está esperando únicamente enviar la foto del comprobante de pago del 25%. "
+            "NO le pidas nombre, teléfono ni detalles de nuevo, y NO le vuelvas a preguntar si confirma el pedido. "
+            "Si pregunta a qué número transferir, dale el NÚMERO PARA TRANSFERENCIAS indicado arriba. "
+            "Solo responde dudas y recuérdale amablemente que mande la foto del comprobante cuando pueda."
+        )
+
+    messages = [{"role": "system", "content": get_system_prompt(page_id, contexto_extra)}] + history
 
     try:
         response = requests.post(

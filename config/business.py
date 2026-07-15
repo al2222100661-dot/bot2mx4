@@ -61,8 +61,8 @@ def get_page_token(page_id: str) -> str:
     return PAGE_TOKENS.get(page_id, os.getenv("PAGE_ACCESS_TOKEN"))
 
 
-def get_system_prompt(page_id: str) -> str:
-    """Genera el system prompt personalizado para cada cliente."""
+def get_system_prompt(page_id: str, contexto_extra: str = "") -> str:
+     """Genera el system prompt personalizado para cada cliente."""
     c = get_client_config(page_id)
 
     servicios_texto = "\n".join([
@@ -100,5 +100,6 @@ REGLAS:
 6. Usa emojis con moderación 😊
 7. Responde siempre en español mexicano.
 8. Para urgencias da el teléfono: {c['phone']}
+{contexto_extra}
 9. Si el cliente pregunta a qué número transferir el pago o adelanto, dale el NÚMERO PARA TRANSFERENCIAS indicado arriba.
 """.strip()
