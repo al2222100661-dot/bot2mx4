@@ -34,6 +34,8 @@ Hay DOS tipos de servicio, cada uno requiere datos distintos:
    - fecha_hora_inicio (día y hora de la cita)
 
 Analiza el mensaje actual Y el historial para juntar todos los datos que el usuario ya ha dado a lo largo de la conversación.
+Si el historial muestra que ya se estaba pidiendo una fecha/hora para agendar, y el mensaje actual es solo una hora o fecha suelta (ej. "3:30", "a las 4", "mañana"), interpreta eso como la respuesta a esa pregunta y continúa el mismo tipo de servicio que se venía procesando en el historial.
+
 
 Si detectas que el usuario quiere alguno de estos dos servicios, responde SOLO con un JSON (sin texto adicional):
 {{
