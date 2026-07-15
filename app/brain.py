@@ -23,10 +23,9 @@ MAX_HISTORY = 20
 def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | None:
     # Si ya agendó y está esperando el comprobante, no vuelvas a detectar agenda
     if esperando_comprobante.get(sender_id):
-        return None  # deja que el flujo normal de conversación responda
+        return None
 
     historial_texto = ""
-    ...
     if sender_id in conversation_history:
         for msg in conversation_history[sender_id][-10:]:
             rol = "Usuario" if msg["role"] == "user" else "Bot"
@@ -59,7 +58,9 @@ def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | N
             return "Ese horario ya está ocupado 😕. ¿Tienes otra fecha u hora disponible?"
 
     try:
-     if tipo_servicio == "bot":
+        crear_evento_servicio(calendar_id, tipo_servicio, resultado, inicio, fin)
+
+        if tipo_servicio == "bot":
             esperando_comprobante[sender_id] = True
             return (
                 f"¡Perfecto {resultado.get('nombre_completo', '')}! Tu solicitud de bot quedó registrada. "
@@ -93,7 +94,8 @@ def get_response(sender_id: str, user_message: str, page_id: str = "") -> str:
         return respuesta_agenda
 
     history = conversation_history[sender_id][-MAX_HISTORY:]
-   contexto_extra = ""
+
+    contexto_extra = ""
     if esperando_comprobante.get(sender_id):
         contexto_extra = (
             "\nIMPORTANTE: Este cliente YA agendó su servicio y YA se le pidieron todos sus datos. "
