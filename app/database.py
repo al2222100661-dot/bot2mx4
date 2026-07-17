@@ -74,6 +74,22 @@ def obtener_conversaciones(cliente_id: str):
     return resultado
 
 
+def obtener_conversaciones_multi(cliente_ids: list):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        """SELECT DISTINCT sender_id, canal, cliente_id, MAX(fecha) as ultima_fecha
+           FROM mensajes
+           WHERE cliente_id = ANY(%s)
+           GROUP BY sender_id, canal, cliente_id
+           ORDER BY ultima_fecha DESC""",
+        (cliente_ids,)
+    )
+    resultado = cur.fetchall()
+    cur.close()
+    conn.close()
+    return resultado
+
 def obtener_mensajes_conversacion(cliente_id: str, sender_id: str):
     """Devuelve todos los mensajes de una conversación específica, ordenados por fecha."""
     conn = get_connection()

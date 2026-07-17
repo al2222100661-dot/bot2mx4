@@ -9,10 +9,12 @@ from dotenv import load_dotenv
 from app.brain import get_response, clear_history
 from app.messenger import send_message, send_typing
 from app.whatsapp import send_whatsapp_message
+from app.panel import router as panel_router
 
 load_dotenv()
 
 app = FastAPI(title="Bot2MX4", version="2.0.0")
+app.include_router(panel_router)
 
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "bot2mx4_secret_2024")
 
