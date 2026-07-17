@@ -9,7 +9,7 @@ from config.business import get_system_prompt
 from agenda_ia import detectar_intencion_agenda
 from calendar_service import crear_evento_servicio, horario_disponible
 from clientes_config import obtener_calendar_id
-
+from app.database import guardar_mensaje
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -76,7 +76,7 @@ def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | N
         return "Tuve un problema al agendar, ¿lo intentamos de nuevo?"
 
 
-def get_response(sender_id: str, user_message: str, page_id: str = "") -> str:
+def get_response(sender_id: str, user_message: str, page_id: str = "", canal: str = "messenger") -> str:
     if sender_id not in conversation_history:
         conversation_history[sender_id] = []
 
@@ -84,6 +84,7 @@ def get_response(sender_id: str, user_message: str, page_id: str = "") -> str:
         "role": "user",
         "content": user_message
     })
+    guardar_mensaje(page_id, sender_id, canal, "user", user_message)
 
     respuesta_agenda = intentar_agendar(sender_id, user_message, page_id)
     if respuesta_agenda:
@@ -91,6 +92,7 @@ def get_response(sender_id: str, user_message: str, page_id: str = "") -> str:
             "role": "assistant",
             "content": respuesta_agenda
         })
+        guardar_mensaje(page_id, sender_id, canal, "assistant", respuesta_agenda)
         return respuesta_agenda
 
     history = conversation_history[sender_id][-MAX_HISTORY:]
@@ -135,6 +137,7 @@ def get_response(sender_id: str, user_message: str, page_id: str = "") -> str:
             "role": "assistant",
             "content": bot_reply
         })
+        guardar_mensaje(page_id, sender_id, canal, "assistant", bot_reply)
 
         return bot_reply
 

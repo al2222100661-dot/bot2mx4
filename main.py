@@ -44,8 +44,8 @@ def procesar_evento_messenger(sender_id, user_text, page_id):
         return
 
     send_typing(sender_id, page_id)
-    bot_reply = get_response(sender_id, user_text, page_id)
-    send_message(sender_id, bot_reply, page_id)
+bot_reply = get_response(sender_id, user_text, page_id, canal="messenger")
+send_message(sender_id, bot_reply, page_id)
 
 
 def procesar_evento_whatsapp(sender_number, user_text, phone_number_id):
@@ -56,8 +56,8 @@ def procesar_evento_whatsapp(sender_number, user_text, phone_number_id):
         return
 
     # Usamos el phone_number_id como "page_id" para reutilizar la config de clientes_config.py
-    bot_reply = get_response(sender_number, user_text, phone_number_id)
-    send_whatsapp_message(sender_number, bot_reply)
+bot_reply = get_response(sender_number, user_text, phone_number_id, canal="whatsapp")
+send_whatsapp_message(sender_number, bot_reply)
 
 
 @app.post("/webhook")
