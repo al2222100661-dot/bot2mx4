@@ -24,9 +24,14 @@ CLIENTS = {
         "hours":   "Lunes a Sabado 9am-5pm",
         "numero_transferencia": "722969020425292698",
         "services": [
-            {"nombre": "Bot para Messenger", "precio": "$1,500 MXN instalación + $500/mes", "duracion": "Entrega en 5 días"},
-            {"nombre": "Casa inteligente",   "precio": "Precio según cotización previa"},
-        ],
+    {"nombre": "Messenger Solo",              "precio": "$1,300 MXN instalación + $500/mes",   "duracion": "Entrega en 5 días"},
+    {"nombre": "WhatsApp Solo",                "precio": "$2,000 MXN instalación + $750/mes",   "duracion": "Entrega en 5 días"},
+    {"nombre": "Combo Mensajería (Messenger + WhatsApp)", "precio": "$3,000 MXN instalación + $1,000/mes", "duracion": "Entrega en 8 días"},
+    {"nombre": "Messenger + Calendario",       "precio": "$2,800 MXN instalación + $800/mes",   "duracion": "Entrega en 8 días"},
+    {"nombre": "WhatsApp + Calendario",        "precio": "$3,500 MXN instalación + $1,000/mes", "duracion": "Entrega en 8 días"},
+    {"nombre": "Combo Total (Messenger + WhatsApp + Calendario)", "precio": "$4,500 MXN instalación + $1,400/mes", "duracion": "Entrega en 10 días"},
+    {"nombre": "Casa inteligente",             "precio": "Precio según cotización previa"},
+],
         "faq": {
             "formas de pago": "Transferencia bancaria (SPEI) o efectivo.",
             "garantia":       "20 días de soporte incluidos.",
