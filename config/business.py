@@ -25,7 +25,7 @@ CLIENTS = {
         "numero_transferencia": "7221234567890111",
         "services": [
             {"nombre": "Bot para Messenger", "precio": "$1,500 MXN instalación + $500/mes", "duracion": "Entrega en 5 días"},
-{"nombre": "Casa inteligente", "precio": "Precio según cotización previa", "duracion": "Instalación en 1 día una vez cotizado"},        ],
+{"nombre": "Casa inteligente", "precio": "Precio según cotización previa"},        ],
         "faq": {
             "formas de pago": "Transferencia bancaria (SPEI) o efectivo.",
             "garantia":       "20 días de soporte incluidos.",
