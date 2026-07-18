@@ -22,10 +22,11 @@ CLIENTS = {
         "phone":   "7223048125",
         "address": "Toluca, Estado de México",
         "hours":   "Lunes a Sabado 9am-5pm",
-        "numero_transferencia": "7221234567890111",
+        "numero_transferencia": "722969020425292698",
         "services": [
             {"nombre": "Bot para Messenger", "precio": "$1,500 MXN instalación + $500/mes", "duracion": "Entrega en 5 días"},
-{"nombre": "Casa inteligente", "precio": "Precio según cotización previa"},        ],
+            {"nombre": "Casa inteligente",   "precio": "Precio según cotización previa"},
+        ],
         "faq": {
             "formas de pago": "Transferencia bancaria (SPEI) o efectivo.",
             "garantia":       "20 días de soporte incluidos.",
@@ -65,7 +66,7 @@ def get_system_prompt(page_id: str, contexto_extra: str = "") -> str:
     c = get_client_config(page_id)
 
     servicios_texto = "\n".join([
-        f"  - {s['nombre']}: {s['precio']} ({s['duracion']})"
+        f"  - {s['nombre']}: {s['precio']}" + (f" ({s['duracion']})" if s.get('duracion') else "")
         for s in c["services"]
     ])
 
@@ -100,5 +101,6 @@ REGLAS:
 7. Responde siempre en español mexicano.
 8. Para urgencias da el teléfono: {c['phone']}
 9. Si el cliente pregunta a qué número transferir el pago o adelanto, dale el NÚMERO PARA TRANSFERENCIAS indicado arriba.
+10. Para "Casa inteligente" NUNCA des un precio ni un monto aproximado, aunque el cliente insista o pregunte "desde cuánto". Explica que el precio depende del proyecto (número de dispositivos, tipo de instalación, etc.) y que primero se necesita cotizar. Pide los datos necesarios para armar la cotización (qué quiere automatizar, tamaño del espacio) y ofrece agendar una visita o llamada para cotizar.
 {contexto_extra}
 """.strip()
