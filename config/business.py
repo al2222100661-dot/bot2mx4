@@ -21,12 +21,11 @@ CLIENTS = {
         "type":    "agencia de automatización",
         "phone":   "7223048125",
         "address": "Toluca, Estado de México",
-        "hours":   "Lunes a Viernes 9am-6pm",
+        "hours":   "Lunes a Sabado 9am-5pm",
         "numero_transferencia": "7221234567890111",
         "services": [
             {"nombre": "Bot para Messenger", "precio": "$1,500 MXN instalación + $500/mes", "duracion": "Entrega en 5 días"},
-            {"nombre": "Casa inteligente",   "precio": "Desde $3,000 MXN",                  "duracion": "Instalación en 1 día"},
-        ],
+{"nombre": "Casa inteligente", "precio": "Precio según cotización previa", "duracion": "Instalación en 1 día una vez cotizado"},        ],
         "faq": {
             "formas de pago": "Transferencia bancaria (SPEI) o efectivo.",
             "garantia":       "20 días de soporte incluidos.",
