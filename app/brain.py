@@ -10,6 +10,7 @@ from agenda_ia import detectar_intencion_agenda
 from calendar_service import crear_evento_servicio, horario_disponible
 from clientes_config import obtener_calendar_id
 from app.database import guardar_mensaje
+
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -17,6 +18,7 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 conversation_history: dict[str, list] = {}
 esperando_comprobante: dict[str, bool] = {}
+citas_creadas: dict[str, tuple] = {}
 MAX_HISTORY = 20
 
 
@@ -49,6 +51,10 @@ def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | N
     if not inicio:
         return "¿Para qué día y hora te gustaría agendar?"
 
+    # Si ya se creó esta misma cita antes, no la proceses de nuevo
+    if citas_creadas.get(sender_id) == (inicio, fin):
+        return "¡Ya tienes esa cita confirmada! 📅✅ Nos vemos entonces."
+
     tipo_servicio = resultado["tipo_servicio"]
 
     # Solo verificar disponibilidad para citas reales (casa inteligente), no para solicitudes de bot
@@ -59,6 +65,7 @@ def intentar_agendar(sender_id: str, user_message: str, page_id: str) -> str | N
 
     try:
         crear_evento_servicio(calendar_id, tipo_servicio, resultado, inicio, fin)
+        citas_creadas[sender_id] = (inicio, fin)
 
         if tipo_servicio == "bot":
             esperando_comprobante[sender_id] = True

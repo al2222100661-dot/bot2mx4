@@ -2,10 +2,13 @@
 BOT2MX4 - Panel web de conversaciones
 """
 
-from fastapi import APIRouter, Request, Response
+import secrets
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from clientes_config import CLIENTES, obtener_cliente_por_login
-from app.database import obtener_conversaciones_multi, obtener_mensajes_conversacion
+from clientes_config import CLIENTES
+from app.database import obtener_conversaciones_multi, obtener_mensajes_conversacion, guardar_mensaje
+from app.messenger import send_message
+from app.whatsapp import send_whatsapp_message
 
 router = APIRouter()
 
@@ -13,7 +16,6 @@ SESIONES = {}  # token: [page_ids del cliente]
 
 
 def generar_token():
-    import secrets
     return secrets.token_urlsafe(24)
 
 
@@ -67,56 +69,83 @@ async def panel(request: Request):
     if not page_ids:
         return RedirectResponse(url="/panel/login")
 
-    return f"""
+    return """
     <html><head>
     <meta charset="utf-8">
     <style>
-        body {{ font-family: sans-serif; margin:0; display:flex; height:100vh; }}
-        #lista {{ width:300px; border-right:1px solid #ddd; overflow-y:auto; }}
-        #chat {{ flex:1; padding:20px; overflow-y:auto; }}
-        .conv {{ padding:12px; border-bottom:1px solid #eee; cursor:pointer; }}
-        .conv:hover {{ background:#f5f5f5; }}
-        .msg-user {{ background:#e4e6eb; padding:8px 12px; border-radius:12px; margin:6px 0; max-width:70%; }}
-        .msg-bot {{ background:#1877f2; color:white; padding:8px 12px; border-radius:12px; margin:6px 0 6px auto; max-width:70%; }}
+        body { font-family: sans-serif; margin:0; display:flex; height:100vh; }
+        #lista { width:300px; border-right:1px solid #ddd; overflow-y:auto; }
+        #chat-container { flex:1; display:flex; flex-direction:column; }
+        #chat { flex:1; padding:20px; overflow-y:auto; }
+        .conv { padding:12px; border-bottom:1px solid #eee; cursor:pointer; }
+        .conv:hover { background:#f5f5f5; }
+        .msg-user { background:#e4e6eb; padding:8px 12px; border-radius:12px; margin:6px 0; max-width:70%; }
+        .msg-bot { background:#1877f2; color:white; padding:8px 12px; border-radius:12px; margin:6px 0 6px auto; max-width:70%; }
     </style>
     </head><body>
     <div id="lista"><h3 style="padding:12px;">Conversaciones</h3><div id="lista-items">Cargando...</div></div>
-    <div id="chat"><p>Selecciona una conversación</p></div>
+    <div id="chat-container">
+        <div id="chat"><p>Selecciona una conversación</p></div>
+        <div style="padding:12px; border-top:1px solid #ddd; display:flex; gap:8px;">
+            <input id="input-msg" placeholder="Escribe un mensaje..." style="flex:1;padding:10px;border-radius:20px;border:1px solid #ccc;">
+            <button onclick="enviarMensaje()" style="padding:10px 20px;background:#1877f2;color:white;border:none;border-radius:20px;">Enviar</button>
+        </div>
+    </div>
 
     <script>
     let senderActual = null;
     let canalActual = null;
     let clienteActual = null;
 
-    async function cargarLista() {{
+    async function cargarLista() {
         const res = await fetch('/panel/api/conversaciones');
         const data = await res.json();
         const cont = document.getElementById('lista-items');
         cont.innerHTML = '';
-        data.forEach(c => {{
+        data.forEach(c => {
             const div = document.createElement('div');
             div.className = 'conv';
-            div.innerHTML = `<b>${{c.sender_id}}</b><br><small>${{c.canal}}</small>`;
+            div.innerHTML = `<b>${c.sender_id}</b><br><small>${c.canal}</small>`;
             div.onclick = () => abrirChat(c.sender_id, c.canal, c.cliente_id);
             cont.appendChild(div);
-        }});
-    }}
+        });
+    }
 
-    async function abrirChat(sender_id, canal, cliente_id) {{
+    async function abrirChat(sender_id, canal, cliente_id) {
         senderActual = sender_id; canalActual = canal; clienteActual = cliente_id;
         await cargarMensajes();
-    }}
+    }
 
-    async function cargarMensajes() {{
+    async function cargarMensajes() {
         if (!senderActual) return;
-        const res = await fetch(`/panel/api/mensajes?sender_id=${{senderActual}}&cliente_id=${{clienteActual}}`);
+        const res = await fetch(`/panel/api/mensajes?sender_id=${senderActual}&cliente_id=${clienteActual}`);
         const data = await res.json();
         const cont = document.getElementById('chat');
         cont.innerHTML = data.map(m =>
-            `<div class="${{m.rol === 'user' ? 'msg-user' : 'msg-bot'}}">${{m.contenido}}</div>`
+            `<div class="${m.rol === 'user' ? 'msg-user' : 'msg-bot'}">${m.contenido}</div>`
         ).join('');
         cont.scrollTop = cont.scrollHeight;
-    }}
+    }
+
+    async function enviarMensaje() {
+        const input = document.getElementById('input-msg');
+        const texto = input.value.trim();
+        if (!texto || !senderActual) return;
+
+        await fetch('/panel/api/enviar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                sender_id: senderActual,
+                cliente_id: clienteActual,
+                canal: canalActual,
+                texto: texto
+            })
+        });
+
+        input.value = '';
+        await cargarMensajes();
+    }
 
     cargarLista();
     setInterval(cargarLista, 8000);
@@ -142,3 +171,28 @@ async def api_mensajes(request: Request, sender_id: str, cliente_id: str):
         return []
     resultado = obtener_mensajes_conversacion(cliente_id, sender_id)
     return [dict(r) for r in resultado]
+
+
+@router.post("/panel/api/enviar")
+async def api_enviar(request: Request):
+    page_ids = validar_sesion(request)
+    if not page_ids:
+        return {"ok": False}
+
+    data = await request.json()
+    sender_id = data.get("sender_id")
+    cliente_id = data.get("cliente_id")
+    canal = data.get("canal")
+    texto = data.get("texto")
+
+    if cliente_id not in page_ids:
+        return {"ok": False}
+
+    if canal == "whatsapp":
+        send_whatsapp_message(sender_id, texto)
+    else:
+        send_message(sender_id, texto, cliente_id)
+
+    guardar_mensaje(cliente_id, sender_id, canal, "assistant", texto)
+
+    return {"ok": True}
